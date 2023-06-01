@@ -1,3 +1,3 @@
 # Alphabet game
 
-Childrens game for learning the alphabet, in a Terminal User Iterface.
+Childrens game for learning the alphabet, with ASCII art in the terminal.
