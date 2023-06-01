@@ -44,13 +44,14 @@ def on_press(
         key: pressed key.
         goal_key: character that needs to be pressed.
     """
-    if key == KeyCode.from_char(goal_key.lower()):
-        print_success_screen(goal_key=goal_key)
-        return False  # stop keyboard listener
-    elif key == Key.esc:
-        sys.exit(0)
-    else:
-        print_challenge_screen(goal_key=goal_key)
+    match key:
+        case Key.esc:
+            sys.exit(0)
+        case KeyCode(char=key) if key.upper() == goal_key:
+            print_success_screen(goal_key=goal_key)
+            return False  # stop keyboard listener
+        case _:
+            print_challenge_screen(goal_key=goal_key)
 
 
 def wait_for_keypress(goal_key: str) -> None:
