@@ -13,38 +13,61 @@ from Xlib.error import ConnectionClosedError
 from alphabet_tui.ascii import LETTERS, SYMBOLS
 
 
-def print_challenge_screen(goal_key: str):
-    """Print challenge screen to terminal."""
+def print_challenge_screen(goal_key: str) -> None:
+    """Print challenge screen to terminal.
+
+    Args:
+        goal_key: character that needs to be pressed.
+    """
     os.system("clear")
     print(LETTERS[goal_key])
 
 
-def print_success_screen(goal_key: str):
-    """Print success screen to terminal."""
+def print_success_screen(goal_key: str) -> None:
+    """Print success screen to terminal.
+
+    Args:
+        goal_key: character that needs to be pressed.
+    """
     os.system("clear")
     print(SYMBOLS[goal_key])
     sleep(10)
 
 
-def on_press(key: KeyCode, goal_key: str):
-    """Handle keypress."""
+def on_press(
+    key: KeyCode,
+    goal_key: str,
+) -> None:
+    """Handle keypress.
+
+    Args:
+        key: pressed key.
+        goal_key: character that needs to be pressed.
+    """
     if key == KeyCode.from_char(goal_key.lower()):
         print_success_screen(goal_key=goal_key)
-        return False
+        return  # stop keyboard listener
     elif key == Key.esc:
         sys.exit(0)
     else:
         print_challenge_screen(goal_key=goal_key)
 
 
-def wait_for_keypress(goal_key: str):
-    """Set up keyboard listener handler for keypress."""
+def wait_for_keypress(goal_key: str) -> None:
+    """Set up keyboard listener handler for keypress.
+
+    Args:
+        goal_key: character that needs to be pressed.
+    """
+    # setup 'on_press' handler with goal_key as partial argument
     on_press_of_goal_key = partial(on_press, goal_key=goal_key)
 
+    # start keyboard listener
     try:
         with Listener(on_press=on_press_of_goal_key) as listener:
             listener.join()
     except ConnectionClosedError:
+        # HERE: keyboard listener was closed by user
         os.system("clear")
         sys.exit(0)
 
