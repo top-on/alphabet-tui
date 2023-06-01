@@ -84,4 +84,3 @@ if __name__ == "__main__":
 
         # wait for user to press goal character
         wait_for_keypress(goal_key=goal_key)
-        wait_for_keypress(goal_key=goal_key)
