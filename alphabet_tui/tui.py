@@ -31,13 +31,13 @@ def print_success_screen(goal_key: str) -> None:
     """
     os.system("clear")
     print(SYMBOLS[goal_key])
-    sleep(10)
+    sleep(5)
 
 
 def on_press(
     key: KeyCode,
     goal_key: str,
-) -> None:
+) -> bool:
     """Handle keypress.
 
     Args:
@@ -46,7 +46,7 @@ def on_press(
     """
     if key == KeyCode.from_char(goal_key.lower()):
         print_success_screen(goal_key=goal_key)
-        return  # stop keyboard listener
+        return False  # stop keyboard listener
     elif key == Key.esc:
         sys.exit(0)
     else:
@@ -77,7 +77,7 @@ if __name__ == "__main__":
     while True:
         # randomly choose (different) goal character
         other_letters = list(set(LETTERS.keys()) - set(goal_key))
-        goal_key = random.choice(other_letters)
+        goal_key = random.choice(list(LETTERS.keys()))
 
         # print goal character
         print_challenge_screen(goal_key=goal_key)
