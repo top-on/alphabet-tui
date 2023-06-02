@@ -91,6 +91,8 @@ if __name__ == "__main__":
 
             case State.SUCCESS:
                 print_success_screen(goal_key=goal_key)
+
+                # transition back to challenge state
                 goal_key = choose_new_goal_key(
                     options=set(LETTERS.keys()),
                     blocklist={goal_key},
