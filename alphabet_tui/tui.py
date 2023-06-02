@@ -1,14 +1,13 @@
 """TUI for alphabet game."""
 
+import enum
 import os
 import random
 import sys
-from functools import partial
 from time import sleep
 
-from pynput.keyboard import Listener
+from pynput.keyboard import Events
 from pynput.keyboard._xorg import Key, KeyCode
-from Xlib.error import ConnectionClosedError
 
 from alphabet_tui.ascii import LETTERS, SYMBOLS
 
@@ -31,57 +30,72 @@ def print_success_screen(goal_key: str) -> None:
     """
     os.system("clear")
     print(SYMBOLS[goal_key])
-    sleep(5)
+    sleep(2)
 
 
-def on_press(
-    key: KeyCode,
-    goal_key: str,
-) -> bool:
-    """Handle keypress.
+def wait_for_pressed_key() -> KeyCode:
+    """Get pressed key.
+
+    Returns:
+        pressed key.
+    """
+    with Events() as events:
+        for event in events:
+            return event.key
+
+
+def choose_new_goal_key(options: set[str], blocklist: set[str] = set()) -> str:
+    """Choose new goal key.
 
     Args:
-        key: pressed key.
-        goal_key: character that needs to be pressed.
+        options: list of characters that can be chosen.
+        blocklist: list of characters that should not be chosen. Defaults to empty set.
+
+    Returns:
+        new goal key.
     """
-    match key:
-        case Key.esc:
-            sys.exit(0)
-        case KeyCode(char=key) if key.upper() == goal_key:
-            print_success_screen(goal_key=goal_key)
-            return False  # stop keyboard listener
-        case _:
-            print_challenge_screen(goal_key=goal_key)
+    return random.choice(list(options - blocklist))
 
 
-def wait_for_keypress(goal_key: str) -> None:
-    """Set up keyboard listener handler for keypress.
+STATES = {"challenge", "success", "exit"}
 
-    Args:
-        goal_key: character that needs to be pressed.
-    """
-    # setup 'on_press' handler with goal_key as partial argument
-    on_press_of_goal_key = partial(on_press, goal_key=goal_key)
 
-    # start keyboard listener
-    try:
-        with Listener(on_press=on_press_of_goal_key) as listener:
-            listener.join()
-    except ConnectionClosedError:
-        # HERE: keyboard listener was closed by user
-        os.system("clear")
-        sys.exit(0)
+class State(enum.Enum):
+    """Game state enum."""
+
+    CHALLENGE = enum.auto()
+    SUCCESS = enum.auto()
+    EXIT = enum.auto()
 
 
 if __name__ == "__main__":
-    goal_key = ""
+    # initialize
+    goal_key = choose_new_goal_key(options=set(LETTERS.keys()))
+    state = State.CHALLENGE
+
     while True:
-        # randomly choose (different) goal character
-        other_letters = list(set(LETTERS.keys()) - set(goal_key))
-        goal_key = random.choice(list(LETTERS.keys()))
+        # do action, according to current state
+        match state:
+            case State.CHALLENGE:
+                print_challenge_screen(goal_key=goal_key)
 
-        # print goal character
-        print_challenge_screen(goal_key=goal_key)
+                # state transition, according to user input
+                key = wait_for_pressed_key()
+                match key:
+                    case Key.esc:
+                        state = State.EXIT
+                    case KeyCode(char=key) if key.upper() == goal_key:
+                        state = State.SUCCESS
+                    case _:
+                        continue
 
-        # wait for user to press goal character
-        wait_for_keypress(goal_key=goal_key)
+            case State.SUCCESS:
+                print_success_screen(goal_key=goal_key)
+                goal_key = choose_new_goal_key(
+                    options=set(LETTERS.keys()),
+                    blocklist={goal_key},
+                )
+                state = State.CHALLENGE
+
+            case State.EXIT:
+                sys.exit(0)
