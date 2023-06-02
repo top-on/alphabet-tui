@@ -57,9 +57,6 @@ def choose_new_goal_key(options: set[str], blocklist: set[str] = set()) -> str:
     return random.choice(list(options - blocklist))
 
 
-STATES = {"challenge", "success", "exit"}
-
-
 class State(enum.Enum):
     """Game state enum."""
 
